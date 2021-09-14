@@ -26,6 +26,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->libdir.'/formslib.php');
+require_once($CFG->dirroot.'/lib/badgeslib.php');
 
 class enrol_badgeenrol_edit_form extends moodleform {
 
@@ -38,8 +39,12 @@ class enrol_badgeenrol_edit_form extends moodleform {
 
         $mform->addElement('header', 'header', get_string('pluginname', 'enrol_badgeenrol'));
 
-        if ($badges = $DB->get_records('badge', array('type' => 1))) {
+//        if ($badges = $DB->get_records('badge', array('type' => 1))) {
+        list($insql, $params) = $DB->get_in_or_equal(array(BADGE_STATUS_ACTIVE, BADGE_STATUS_ACTIVE_LOCKED), SQL_PARAMS_NAMED);
+        $sql = "SELECT * FROM {badge} WHERE (courseid IS NULL OR courseid <> :courseid) AND status $insql";
+        $params['courseid'] = $instance->courseid;
 
+        if ($badges = $DB->get_records_sql($sql, $params)) {        
             $mform->addElement('text', 'name', get_string('custominstancename', 'enrol'));
             $mform->setType('name', PARAM_TEXT);
 
